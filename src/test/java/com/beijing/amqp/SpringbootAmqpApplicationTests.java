@@ -5,10 +5,10 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import org.junit.jupiter.api.Test;
+import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import sun.java2d.pipe.SpanIterator;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -43,7 +43,7 @@ class SpringbootAmqpApplicationTests {
         // content_type:application/x-java-serialized-object  对象被默认序列化以后发送出去
 //        rabbitTemplate.convertAndSend("exchange.direct", "atguigu.news", map);
         //自定义对象
-        Book book = new Book("西游记","zlk");
+        Book book = new Book("西游记", "zlk");
         rabbitTemplate.convertAndSend(SEND, "atguigu.news", book);
 
     }
@@ -52,10 +52,20 @@ class SpringbootAmqpApplicationTests {
      * 接收消息API  执行完后消息在queue中消费掉没有了
      */
     @Test
-    public void testReceviceApi(){
-        Object object = rabbitTemplate.receiveAndConvert("atguigu.news");
-        System.out.println(object.getClass());
-        System.out.println(object);
+    public void testReceviceApi() {
+//        Object object = rabbitTemplate.receiveAndConvert("atguigu.news");
+//        if (object != null) {
+//            System.out.println(object.getClass());
+//            System.out.println(object);
+//        }
+    }
+
+    /**
+     * 广播
+     */
+    @Test
+    public void sendMessage() {
+        rabbitTemplate.convertAndSend(SEND_MULTI, "atguigu.news", new Book("红楼梦", "曹雪芹"));
     }
 
 
@@ -81,11 +91,26 @@ class SpringbootAmqpApplicationTests {
     }
 
 
+    @Autowired
+    AmqpAdmin amqpAdmin;
+
     /**
-     * 广播
+     * 通过amqpAdmin创建exchange、queue和他们之间的绑定规则
      */
     @Test
-    public void sendMessage(){
-        rabbitTemplate.convertAndSend(SEND_MULTI, "atguigu.news", new Book("三国","罗贯中"));
+    public void testCreateExchange() {
+//        Exchange exchange = new DirectExchange("amqpadmin.exchange.direct");
+//        amqpAdmin.declareExchange(exchange);
+//        System.out.println("amqp.exchange.direct create finish");
+
+//        amqpAdmin.declareQueue(new Queue("amqpadmin.queue1",true));
+//        System.out.println("amqpadmin.queue1 FINISH");
+
+        amqpAdmin.declareBinding(new Binding("amqpadmin.queue1"
+                , Binding.DestinationType.QUEUE
+                , "amqpadmin.exchange.direct"
+                , "amqp.routkey"
+                , null));
+
     }
 }
